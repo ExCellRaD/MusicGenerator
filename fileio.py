@@ -16,7 +16,8 @@ class FileReader(object):
     def parse_file_header(self, midifile):
         # First four bytes are MIDI header
         magic = midifile.read(4)
-        if magic != 'MThd':
+        decoded = magic.decode("utf-8")
+        if decoded != 'MThd':
             raise ValueError("Bad header in MIDI file.")
         # next four bytes are header size
         # next two bytes specify the format version
@@ -36,7 +37,7 @@ class FileReader(object):
             
     def parse_track_header(self, midifile):
         # First four bytes are Track header
-        magic = midifile.read(4)
+        magic = midifile.read(4).decode("utf-8")
         if magic != 'MTrk':
             raise ValueError("Bad track header in MIDI file: " + magic)
         # next four bytes are track size
@@ -97,7 +98,7 @@ class FileReader(object):
                 channel = self.RunningStatus & 0x0F
                 data = [ord(trackdata.next()) for x in range(cls.length)]
                 return cls(tick=tick, channel=channel, data=data)
-        raise Warning, "Unknown MIDI Event: " + `stsmsg`
+        raise Warning("Unknown MIDI Event: " + stsmsg)
 
 class FileWriter(object):
     def write(self, midifile, pattern):
@@ -146,17 +147,17 @@ class FileWriter(object):
                     ret += chr(event.statusmsg | event.channel)
             ret += str.join('', map(chr, event.data))
         else:
-            raise ValueError, "Unknown MIDI Event: " + str(event)
+            raise ValueError("Unknown MIDI Event: " + str(event))
         return ret
 
 def write_midifile(midifile, pattern):
-    if type(midifile) in (str, unicode):
-        midifile = open(midifile, 'wb')
+   # if type(midifile) in (str, unicode):
+    midifile = open(midifile, 'wb')
     writer = FileWriter()
     return writer.write(midifile, pattern)
 
 def read_midifile(midifile):
-    if type(midifile) in (str, unicode):
-        midifile = open(midifile, 'rb')
+   # if type(midifile) in (str, unicode):
+    midifile = open(midifile, 'rb')
     reader = FileReader()
     return reader.read(midifile)
