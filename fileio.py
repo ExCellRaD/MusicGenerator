@@ -59,23 +59,23 @@ class FileReader(object):
         # first datum is varlen representing delta-time
         tick = read_varlen(trackdata)
         # next byte is status message
-        stsmsg = ord(trackdata.next())
+        stsmsg = str(trackdata).encode('utf-8').__iter__
         # is the event a MetaEvent?
         if MetaEvent.is_event(stsmsg):
-            cmd = ord(trackdata.next())
+            cmd = next(trackdata)
             if cmd not in EventRegistry.MetaEvents:
                 warn("Unknown Meta MIDI Event: " + cmd, Warning)
                 cls = UnknownMetaEvent
             else:
                 cls = EventRegistry.MetaEvents[cmd]
             datalen = read_varlen(trackdata)
-            data = [ord(trackdata.next()) for x in range(datalen)]
+            data = [next(trackdata) for x in range(datalen)]
             return cls(tick=tick, data=data, metacommand=cmd)
         # is this event a Sysex Event?
         elif SysexEvent.is_event(stsmsg):
             data = []
             while True:
-                datum = ord(trackdata.next())
+                datum = next(trackdata)
                 if datum == 0xF7:
                     break
                 data.append(datum)
@@ -90,13 +90,13 @@ class FileReader(object):
                 cls = EventRegistry.Events[key]
                 channel = self.RunningStatus & 0x0F
                 data.append(stsmsg)
-                data += [ord(trackdata.next()) for x in range(cls.length - 1)]
+                data += [ord(next(trackdata)) for x in range(cls.length - 1)]
                 return cls(tick=tick, channel=channel, data=data)
             else:
                 self.RunningStatus = stsmsg
                 cls = EventRegistry.Events[key]
                 channel = self.RunningStatus & 0x0F
-                data = [ord(trackdata.next()) for x in range(cls.length)]
+                data = [next(trackdata) for x in range(cls.length)]
                 return cls(tick=tick, channel=channel, data=data)
         raise Warning("Unknown MIDI Event: " + stsmsg)
 
