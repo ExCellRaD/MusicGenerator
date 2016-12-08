@@ -1,4 +1,4 @@
-import midi
+import fileio as midi
 import numpy as np
 
 
